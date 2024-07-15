@@ -11,13 +11,21 @@ import (
 
 func CreateJWT(secret []byte, userID int) (string, error) {
 	godotenv.Load(".env")
-	experationInSeconds = os.Getenv("JWT_EXPIRATION")
-	experation := time.Second * time.Duration(experationInSeconds)
+	expirationStr := os.Getenv("JWT_EXPIRATION")
+	expirationSeconds, err := strconv.ParseInt(expirationStr, 10, 64)
+	if err != nil {
+		return "", err
+	}
+
+	expiration := time.Duration(expirationSeconds) * time.Second
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID":    strconv.Itoa(userID),
 		"expiredAt": time.Now().Add(expiration).Unix(),
 	})
-	// Implement a function that creates a JWT
-	return "", nil
+	tokenString, err := token.SignedString(secret)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }

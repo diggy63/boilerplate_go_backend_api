@@ -3,12 +3,14 @@ package user
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/diggy63/boilerplate_go_api/service/auth"
 	"github.com/diggy63/boilerplate_go_api/types"
 	"github.com/diggy63/boilerplate_go_api/utils"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 type Handler struct {
@@ -25,8 +27,10 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	godotenv.Load(".env")
+	secret := os.Getenv("SECRET_JWT")
 	// get json payload
-	var payload types.RegisterUserPayload
+	var payload types.LoginUserPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -48,7 +52,11 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": ""})
+	token, err := auth.CreateJWT([]byte(secret), u.ID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+	}
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
 
 }
 

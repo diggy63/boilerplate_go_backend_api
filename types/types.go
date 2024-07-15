@@ -29,6 +29,10 @@ type UserStore interface {
 	CreateUser(User) error
 }
 
+type ToDoListStore interface {
+	GetToDoListsByUserID(userID int) ([]ToDoList, error)
+}
+
 type ToDoList struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`

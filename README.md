@@ -1,7 +1,9 @@
-.env configs/n
+.env configs
 
 PORT=[port]
 
 DB_HOST=[ConnectionString]
 
-JWT_EXPIRATION=[enter how lonf you want your jwt to last]
+JWT_EXPIRATION=[this value must be in seconds]
+
+SECRET_JWT=[JWT SECRET]
