@@ -1,5 +1,7 @@
 .env configs/n
 
-PORT=[port]/n
-DB_HOST=[ConnectionString]/n
-JWT_EXPIRATION=[enter how lonf you want your jwt to last]/n
+PORT=[port]
+
+DB_HOST=[ConnectionString]
+
+JWT_EXPIRATION=[enter how lonf you want your jwt to last]
