@@ -2,6 +2,7 @@ package types
 
 import "time"
 
+// User Types
 type RegisterUserPayload struct {
 	FirstName string `json:"first_name" validate:"required"`
 	LastName  string `json:"last_name" validate:"required"`
@@ -29,8 +30,16 @@ type UserStore interface {
 	CreateUser(User) error
 }
 
-type ToDoListStore interface {
-	GetToDoListsByUserID(userID int) ([]ToDoList, error)
+//ToDoList Types
+
+type NewToDoPayload struct {
+	Apikey string `json:"api_key"`
+	Title  string `json:"title"`
+}
+
+type NewToDoList struct {
+	UserID int    `json:"user_id"`
+	Title  string `json:"title"`
 }
 
 type ToDoList struct {
@@ -46,4 +55,10 @@ type ToDo struct {
 	Title     string    `json:"title"`
 	Completed bool      `json:"completed"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type ToDoListStore interface {
+	GetToDoListsByUserID(userID int) ([]ToDoList, error)
+	DeleteToDoListByID(listID int) error
+	CreateToDoList(NewToDoList) error
 }

@@ -29,3 +29,18 @@ func CreateJWT(secret []byte, userID int) (string, error) {
 	}
 	return tokenString, nil
 }
+
+func DecodeUserInfo(secret []byte, tokenstring string) (string, error) {
+	token, err := jwt.Parse(tokenstring, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
+	if err != nil {
+		return "secret not correct in decode", err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "token claims not correct in decode", err
+	}
+	userID := claims["userID"].(string)
+	return userID, nil
+}

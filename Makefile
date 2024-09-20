@@ -7,7 +7,6 @@ test:
 run: build
 	@./bin/boilerplate_go_api
 
-
 migration:
 	@migrate create -ext sql -dir cmd/migrate/migrations $(filter-out $@,$(MAKECMDGOALS))
 
