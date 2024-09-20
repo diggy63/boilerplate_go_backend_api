@@ -22,13 +22,19 @@ func NewHandler(store types.ToDoListStore) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/todo_lists/{api_key}", h.handleGetToDoLists).Methods("GET")
+	router.HandleFunc("/todo_lists", h.handleGetToDoLists).Methods("GET")
 	router.HandleFunc("/todo_lists", h.handleCreateToDoList).Methods("POST")
 	router.HandleFunc("/todo_lists/{id}", h.handleDeleteToDoList).Methods("DELETE")
 }
 
 func (h *Handler) handleCreateToDoList(w http.ResponseWriter, r *http.Request) {
-	secret, err := getSecret(w)
+	authHeader := r.Header.Get("Authorization")
+	//get token from auth package
+	token, err := auth.GetToken(authHeader)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+	secret, err := getSecret()
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 	}
@@ -39,17 +45,12 @@ func (h *Handler) handleCreateToDoList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//decode jwt using auth package
-	user_id, err := auth.DecodeUserInfo([]byte(secret), payload.Apikey)
-	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, err)
-	}
-	//turn string id into int
-	user_id_int, err := strconv.Atoi(user_id)
+	user_id, err := auth.DecodeUserInfo([]byte(secret), token)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 	}
 	//create todo list with foriegn key of user id
-	err = h.store.CreateToDoList(types.NewToDoList{UserID: user_id_int, Title: payload.Title})
+	err = h.store.CreateToDoList(types.NewToDoList{UserID: user_id, Title: payload.Title})
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 	}
@@ -59,26 +60,25 @@ func (h *Handler) handleCreateToDoList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleGetToDoLists(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	apikey := vars["api_key"]
-	secret, err := getSecret(w)
-	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
-	}
-	user_id, err := auth.DecodeUserInfo([]byte(secret), apikey)
+	authHeader := r.Header.Get("Authorization")
+	//get token from auth package
+	token, err := auth.GetToken(authHeader)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 	}
-	//turn string id into int
-	user_id_int, err := strconv.Atoi(user_id)
+	secret, err := getSecret()
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("err"))
+		utils.WriteError(w, http.StatusInternalServerError, err)
 	}
-	toDoLists, err := h.store.GetToDoListsByUserID(user_id_int)
+
+	user_id, err := auth.DecodeUserInfo([]byte(secret), token)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+	toDoLists, err := h.store.GetToDoListsByUserID(user_id)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("error getting todo list: %v", err))
 	}
-	fmt.Println(toDoLists)
 	utils.WriteJSON(w, http.StatusOK, toDoLists)
 }
 
@@ -96,15 +96,13 @@ func (h *Handler) handleDeleteToDoList(w http.ResponseWriter, r *http.Request) {
 }
 
 // handles getting our secret
-func getSecret(w http.ResponseWriter) (string, error) {
-	err := godotenv.Load("../.env")
+func getSecret() (string, error) {
+	err := godotenv.Load(".env")
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("error loading .env file: %v", err))
 		return "", err
 	}
 	secret := os.Getenv("SECRET_JWT")
 	if secret == "" {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("SECRET_JWT environment variable not set"))
 		return "", err
 	}
 	return secret, nil

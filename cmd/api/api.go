@@ -7,6 +7,7 @@ import (
 
 	"github.com/diggy63/boilerplate_go_api/service/health"
 	"github.com/diggy63/boilerplate_go_api/service/todo_list.go"
+	"github.com/diggy63/boilerplate_go_api/service/todos"
 	"github.com/diggy63/boilerplate_go_api/service/user"
 	"github.com/gorilla/mux"
 )
@@ -34,6 +35,10 @@ func (s *APIServer) Run() error {
 	todoListStore := todo_list.NewStore(s.db)
 	todoListHandler := todo_list.NewHandler(todoListStore)
 	todoListHandler.RegisterRoutes(subrouter)
+	//Regioster ToDo Handlers
+	todoStore := todos.NewStore(s.db)
+	todoHandler := todos.NewHandler(todoStore)
+	todoHandler.RegisterRoutes(subrouter)
 	//register health handler
 	healthHandler := health.NewHandler()
 	healthHandler.RegisterRoutes(subrouter)

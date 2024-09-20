@@ -2,7 +2,6 @@ package todo_list
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/diggy63/boilerplate_go_api/types"
 )
@@ -41,7 +40,6 @@ func (s *Store) GetToDoListsByUserID(userID int) ([]types.ToDoList, error) {
 }
 
 func (s *Store) DeleteToDoListByID(listID int) error {
-	fmt.Println("listID", listID)
 	_, err := s.db.Exec("Delete From to_do_list Where id = $1", listID)
 	if err != nil {
 		return err
