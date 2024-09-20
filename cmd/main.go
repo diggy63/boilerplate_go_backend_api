@@ -11,10 +11,13 @@ import (
 )
 
 func main() {
-	godotenv.Load(".env")
+	err := godotenv.Load("../.env")
+	//Makes sure you are getting your .env file from the correct path
+	if err != nil {
+		log.Fatal("Error loading .env file:", err)
+	}
 	DB_URL := os.Getenv("DB_HOST")
-	// PORT := os.Getenv("PORT")
-	PORT := ":8080"
+	PORT := os.Getenv("PORT")
 	db, err := db.NewPSQLStorage(DB_URL) // Assuming this returns a *sql.DB and error
 	if err != nil {
 		log.Fatal("Error initializing database:", err)
