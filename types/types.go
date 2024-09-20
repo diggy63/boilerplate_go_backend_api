@@ -32,7 +32,7 @@ type UserStore interface {
 
 //ToDoList Types
 
-type NewToDoPayload struct {
+type NewToDoListPayload struct {
 	Title string `json:"title"`
 }
 
@@ -57,7 +57,7 @@ type ToDoListStore interface {
 //ToDo Types
 
 type ToDoStore interface {
-	CreateToDo(toDoID int) error
+	CreateToDo(toDoID NewToDo) error
 	GetToDosByListID(listID int) ([]ToDo, error)
 	DeleteToDoByID(todDoID int) error
 	UpdateToDoByID(toDoID int, completed bool) error
@@ -69,4 +69,14 @@ type ToDo struct {
 	Title     string    `json:"title"`
 	Completed bool      `json:"completed"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type NewToDoPayload struct {
+	Title string `json:"title"`
+}
+
+type NewToDo struct {
+	ListID    int    `json:"listID"`
+	Title     string `json:"title"`
+	Completed bool   `json:"completed"`
 }

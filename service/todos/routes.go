@@ -2,7 +2,9 @@ package todos
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/diggy63/boilerplate_go_api/service/auth"
 	"github.com/diggy63/boilerplate_go_api/types"
 	"github.com/diggy63/boilerplate_go_api/utils"
 	"github.com/gorilla/mux"
@@ -24,6 +26,31 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *Handler) handleCreateToDo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	listID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+
+	}
+	authHeader := r.Header.Get("Authorization")
+	//get token from auth package
+	token, err := auth.GetToken(authHeader)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+	var payload types.NewToDoPayload
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	_, err = auth.DecodeUserInfo(token)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+	err = h.store.CreateToDo(types.NewToDo{ListID: listID, Title: payload.Title, Completed: false})
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "todo created"})
 }
 

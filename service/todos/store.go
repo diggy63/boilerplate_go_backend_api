@@ -14,7 +14,11 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) CreateToDo(toDoID int) error {
+func (s *Store) CreateToDo(newToDo types.NewToDo) error {
+	_, err := s.db.Exec("Insert Into to_do (list_id, title, is_done) Values ($1, $2, $3)", newToDo.ListID, newToDo.Title, newToDo.Completed)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -32,7 +32,11 @@ func CreateJWT(secret []byte, userID int) (string, error) {
 	return tokenString, nil
 }
 
-func DecodeUserInfo(secret []byte, tokenstring string) (int, error) {
+func DecodeUserInfo(tokenstring string) (int, error) {
+	secret, err := GetSecret()
+	if err != nil {
+		return 0, err
+	}
 	token, err := jwt.Parse(tokenstring, func(token *jwt.Token) (interface{}, error) {
 		return secret, nil
 	})
@@ -45,6 +49,9 @@ func DecodeUserInfo(secret []byte, tokenstring string) (int, error) {
 	}
 	userID := claims["userID"].(string)
 	user_id_int, err := strconv.Atoi(userID)
+	if err != nil {
+		return 0, err
+	}
 	return user_id_int, nil
 }
 
@@ -59,4 +66,17 @@ func GetToken(authHeader string) (string, error) {
 	}
 	token := tokenParts[1]
 	return token, nil
+}
+
+// handles getting our secret
+func GetSecret() ([]byte, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		return nil, err
+	}
+	secret := os.Getenv("SECRET_JWT")
+	if secret == "" {
+		return nil, err
+	}
+	return []byte(secret), nil
 }

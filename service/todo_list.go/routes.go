@@ -3,14 +3,12 @@ package todo_list
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/diggy63/boilerplate_go_api/service/auth"
 	"github.com/diggy63/boilerplate_go_api/types"
 	"github.com/diggy63/boilerplate_go_api/utils"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 )
 
 type Handler struct {
@@ -34,18 +32,14 @@ func (h *Handler) handleCreateToDoList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 	}
-	secret, err := getSecret()
-	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
-	}
 	//get json payload
-	var payload types.NewToDoPayload
+	var payload types.NewToDoListPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	//decode jwt using auth package
-	user_id, err := auth.DecodeUserInfo([]byte(secret), token)
+	user_id, err := auth.DecodeUserInfo(token)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 	}
@@ -66,12 +60,7 @@ func (h *Handler) handleGetToDoLists(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 	}
-	secret, err := getSecret()
-	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
-	}
-
-	user_id, err := auth.DecodeUserInfo([]byte(secret), token)
+	user_id, err := auth.DecodeUserInfo(token)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 	}
@@ -93,17 +82,4 @@ func (h *Handler) handleDeleteToDoList(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("error deleting todo list: %v", err))
 	}
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "delete todo list"})
-}
-
-// handles getting our secret
-func getSecret() (string, error) {
-	err := godotenv.Load(".env")
-	if err != nil {
-		return "", err
-	}
-	secret := os.Getenv("SECRET_JWT")
-	if secret == "" {
-		return "", err
-	}
-	return secret, nil
 }
